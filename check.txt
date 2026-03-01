@@ -1,0 +1,79 @@
+import pandas as pd
+import numpy as np
+
+# ── Change this to your file path ─────────────────────────
+FILE_PATH = 'water_quality.csv'
+
+df = pd.read_csv(FILE_PATH)
+
+print("=" * 60)
+print("SHAPE:", df.shape)
+print("=" * 60)
+
+print("\nCOLUMNS & DTYPES:")
+print(df.dtypes)
+
+print("\nFIRST 10 ROWS:")
+print(df.head(10))
+
+print("\nLAST 10 ROWS:")
+print(df.tail(10))
+
+print("\nCOMPLETE STATISTICAL SUMMARY:")
+print(df.describe(include='all').to_string())
+
+print("\nMISSING VALUES:")
+print(df.isnull().sum())
+
+print("\nDUPLICATE ROWS:", df.duplicated().sum())
+
+print("\nSAMPLE VALUES PER COLUMN:")
+for col in df.columns:
+    print(f"  {col}: {df[col].dropna().unique()[:5].tolist()}")
+
+print("\nALL UNIQUE VALUES FOR LOW CARDINALITY COLUMNS:")
+for col in df.columns:
+    if df[col].nunique() <= 20:
+        print(f"  {col}: {df[col].dropna().unique().tolist()}")
+
+# ── Time Series Specific ───────────────────────────────────
+print("\n" + "=" * 60)
+print("TIME SERIES INFO")
+print("=" * 60)
+
+# Auto detect datetime column
+date_col = None
+for col in df.columns:
+    if df[col].dtype == 'object':
+        try:
+            pd.to_datetime(df[col])
+            date_col = col
+            print(f"Detected Date Column : {col}")
+            break
+        except:
+            pass
+
+if date_col:
+    df[date_col] = pd.to_datetime(df[date_col])
+    df = df.sort_values(date_col)
+    print(f"Date Range           : {df[date_col].min()} → {df[date_col].max()}")
+    print(f"Total Period (days)  : {(df[date_col].max() - df[date_col].min()).days}")
+    print(f"Inferred Frequency   : {pd.infer_freq(df[date_col])}")
+    print(f"Total Records        : {len(df)}")
+
+    print("\nRECORDS PER YEAR:")
+    print(df.groupby(df[date_col].dt.year).size())
+
+    print("\nRECORDS PER MONTH:")
+    print(df.groupby(df[date_col].dt.month).size())
+else:
+    print("⚠️  No datetime column auto-detected.")
+    print("Please manually check which column is your date column.")
+
+print("\n" + "=" * 60)
+print("FULL DATASET (ALL ROWS):")
+print("=" * 60)
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+print(df.to_string())
