@@ -1,0 +1,90 @@
+ How to Start the Conversation
+
+"I have completed the Exploratory Data Analysis on our Water Quality dataset. The data covers 2 years of 30-minute sensor readings from 2004 to 2006. I want to walk you through 7 key patterns I found and what we can do with them."
+
+
+📊 Pattern by Pattern — What to Say
+
+Pattern 1 — WQI repeats every year
+Show: The scatter plot over time
+
+"When I plotted WQI across the full 2 years, I can clearly see it rises every summer and falls every winter — and this repeats perfectly in both years. This tells me two things. First, the data is real and trustworthy. Second, time of year is going to be one of the most powerful signals for any prediction model."
+
+What it means:
+
+The data has no major corruption or drift
+Year-over-year consistency = reliable training data
+
+
+Pattern 2 — Every sensor follows the same seasonal rhythm
+Show: The 6-panel monthly median chart + the WQI bar chart by month
+
+"It's not just WQI — every single sensor follows the same summer/winter pattern. Temperature goes from 5°C in winter to 27°C in summer. Dissolved Oxygen does the opposite — it's highest in winter, lowest in summer. WQI goes from 13 in January all the way to 37 in September. Everything moves together seasonally."
+
+What it means:
+
+Month of year alone can roughly predict WQI class
+All sensors are physically behaving correctly — no faulty sensors
+
+
+Pattern 3 — Two sensors explain almost everything
+Show: The correlation bar chart + Temperature vs WQI scatter
+
+"I ran a correlation analysis between each sensor and WQI. The result is very clear. Temperature has a correlation of +0.86 — meaning as temperature goes up, WQI goes up. Dissolved Oxygen has a correlation of −0.95 — nearly perfect inverse relationship. The reason is simple physics: warm water holds less oxygen. So when it's hot, oxygen drops, and WQI risk rises. These two sensors together almost fully explain WQI."
+
+What it means:
+
+If we only had Temp and DO sensors, we could still predict WQI with high accuracy
+These will be the top features in any machine learning model
+
+
+Pattern 4 — Even within a single day, WQI changes by hour
+Show: The diurnal (hour of day) chart
+
+"Even zooming into a single day, WQI is not flat — it follows a daily cycle. In summer, WQI peaks in the afternoon and dips at night. This is because temperature rises during the day, pulling oxygen down. In winter the daily swing is almost flat. This is why in our ML dataset we added sine and cosine transformations of the hour — so the model can learn this daily curve."
+
+What it means:
+
+Hour of day matters — especially in summer
+A model that ignores time of day will make worse predictions
+
+
+Pattern 5 — Water quality risk is entirely seasonal
+Show: The stacked bar chart and boxplot by season
+
+"This is the most important finding for operations. In Winter, 100% of all readings are Excellent — there is zero risk. In Summer, 91% of readings are Good, and 1.1% are Poor — that is when problems happen. Poor quality readings appear only in Summer and Autumn. If someone asks when to watch water quality most carefully — the answer is clearly July, August, September."
+
+What it means:
+
+Monitoring resources and alerts should focus on summer months
+A season-based early warning system is already justified by this data alone
+
+
+Pattern 6 — 12.2% of the data had gaps — and we handled it correctly
+Show: The gap chart
+
+"The original dataset had 33,138 rows. After forcing a strict 30-minute time grid, we needed 37,730 rows — meaning 4,592 timestamps were missing, mostly in January and February. We filled them using forward-fill, which carries the last known sensor value forward. Crucially, we flagged every filled row so the model knows which rows are real vs filled. This is the correct industry approach."
+
+What it means:
+
+Data gaps are real but handled transparently
+The model can be trained to weight real readings more than filled ones
+
+
+Pattern 7 — Most sensors are clean, Turbidity needs attention
+Show: The distributions chart
+
+"For most sensors, the distribution is clean — the mean and median are very close, which means no major skew. Turbidity is the exception — it has 2,486 outliers and its mean is double its median. This points to a few extreme events, likely storm runoff or heavy rain. These are real events, not errors — but we should consider applying a log transformation to Turbidity before feeding it into a model, so those extreme values don't dominate training."
+
+What it means:
+
+7 out of 8 sensors are model-ready as-is
+Turbidity needs a log transform before ML training
+
+
+🎯 What Can We Do With These Patterns?
+What we foundWhat we can buildWQI follows a seasonal cycleSeasonal forecasting — predict next month's average WQITemp and DO drive WQI (r > 0.86)Real-time WQI prediction from just 2 sensorsPoor quality only in Summer/AutumnRisk calendar — automated alerts Jun–OctDaily (diurnal) cycle existsHourly WQI predictions within a day12.2% data gaps identifiedData quality dashboard for sensor health monitoringTurbidity has storm spikesStorm event detector — flag anomalies automatically
+
+💬 How to Close the Presentation
+
+"In summary — the data is clean, the patterns are strong and consistent, and we have two sensors that almost fully explain water quality. I recommend the next step is to build a regression model to predict WQI score, and a classification model to predict the WQI class. The feature engineering is already done in df_feat.csv. We are ready to model."
